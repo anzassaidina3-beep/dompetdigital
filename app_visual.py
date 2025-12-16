@@ -5,11 +5,13 @@ import os
 from datetime import datetime
 import matplotlib.pyplot as plt
 from matplotlib.backends.backend_tkagg import FigureCanvasTkAgg
+import fitur_export
 
 # --- KONFIGURASI ---
 NAMA_FILE = "data_pengeluaran.json"
 WARNA_BG = "#F0F2F5"
 WARNA_HEADER = "#2C3E50"
+WARNA_TOMBOL_EXPORT = "#3498DB" # Biru Langit
 
 # --- BACKEND (LOGIKA) ---
 def muat_data():
@@ -60,7 +62,7 @@ def aksi_tambah():
     entry_nominal.delete(0, tk.END)
     
     tampilkan_data()
-    update_grafik() # Update grafik setelah tambah data
+    update_grafik()
     messagebox.showinfo("Sukses", "Data berhasil disimpan!")
 
 def aksi_hapus():
@@ -75,8 +77,15 @@ def aksi_hapus():
         del data[index]
         simpan_data(data)
         tampilkan_data()
-        update_grafik() # Update grafik setelah hapus data
+        update_grafik()
         messagebox.showinfo("Terhapus", "Data berhasil dihapus.")
+
+def aksi_export():
+    # 1. Ambil data terbaru
+    data = muat_data()
+    
+    # 2. Panggil fungsi yang ada di file 'fitur_export.py'
+    fitur_export.simpan_ke_csv(data)
 
 def tampilkan_data():
     for row in tabel.get_children():
@@ -93,43 +102,35 @@ def tampilkan_data():
     label_total.config(text=f"Total Pengeluaran: {format_rupiah(total)}")
 
 def update_grafik():
-    """Fungsi untuk membuat Pie Chart berdasarkan Kategori"""
     data = muat_data()
     if not data:
         return
 
-    # Hitung total per kategori
     kategori_total = {}
     for item in data:
         kat = item.get('kategori', 'Lainnya')
         nom = item['nominal']
         kategori_total[kat] = kategori_total.get(kat, 0) + nom
 
-    # Siapkan data untuk chart
     labels = list(kategori_total.keys())
     values = list(kategori_total.values())
 
-    # Bersihkan grafik lama
     figure.clear()
-    
-    # Buat Pie Chart baru
     ax = figure.add_subplot(111)
     ax.pie(values, labels=labels, autopct='%1.1f%%', startangle=90, colors=['#ff9999','#66b3ff','#99ff99','#ffcc99','#c2c2f0'])
     ax.set_title("Persentase Pengeluaran")
-
-    # Refresh canvas
     canvas.draw()
 
 # --- FRONTEND (GUI) ---
 root = tk.Tk()
-root.title("Dompet Digital V3.0 - Dengan Analisis")
-root.geometry("1000x600")
+root.title("Dompet Digital V4.0 - Fitur Export")
+root.geometry("1000x650") # Sedikit diperbesar
 root.configure(bg=WARNA_BG)
 
 # Header
 tk.Label(root, text="DOMPET DIGITAL PINTAR", bg=WARNA_HEADER, fg="white", font=("Segoe UI", 16, "bold"), pady=10).pack(fill="x")
 
-# Tab System (Notebook)
+# Tab System
 notebook = ttk.Notebook(root)
 notebook.pack(fill="both", expand=True, padx=10, pady=10)
 
@@ -137,7 +138,7 @@ notebook.pack(fill="both", expand=True, padx=10, pady=10)
 tab1 = tk.Frame(notebook, bg=WARNA_BG)
 notebook.add(tab1, text="📝 Input & Data")
 
-# Frame Kiri (Input) - Tab 1
+# Frame Kiri (Input)
 frame_input = tk.Frame(tab1, bg="white", padx=20, pady=20)
 frame_input.pack(side="left", fill="y", padx=10, pady=10)
 
@@ -154,10 +155,13 @@ tk.Label(frame_input, text="Nominal (Rp)", bg="white").pack(anchor="w")
 entry_nominal = tk.Entry(frame_input)
 entry_nominal.pack(fill="x", pady=(0, 20))
 
+# Tombol-tombol
 tk.Button(frame_input, text="SIMPAN", bg="#27AE60", fg="white", command=aksi_tambah).pack(fill="x", pady=5)
-tk.Button(frame_input, text="HAPUS", bg="#E74C3C", fg="white", command=aksi_hapus).pack(fill="x")
+tk.Button(frame_input, text="HAPUS", bg="#E74C3C", fg="white", command=aksi_hapus).pack(fill="x", pady=5)
+# Tombol Export Baru
+tk.Button(frame_input, text="📥 DOWNLOAD LAPORAN", bg=WARNA_TOMBOL_EXPORT, fg="white", command=aksi_export).pack(fill="x", pady=(20, 0))
 
-# Frame Kanan (Tabel) - Tab 1
+# Frame Kanan (Tabel)
 frame_tabel = tk.Frame(tab1)
 frame_tabel.pack(side="right", fill="both", expand=True, padx=10, pady=10)
 
@@ -174,12 +178,10 @@ label_total.pack(anchor="e")
 tab2 = tk.Frame(notebook, bg="white")
 notebook.add(tab2, text="📊 Analisis Grafik")
 
-# Area Grafik Matplotlib
 figure = plt.Figure(figsize=(6, 5), dpi=100)
 canvas = FigureCanvasTkAgg(figure, tab2)
 canvas.get_tk_widget().pack(fill="both", expand=True, padx=20, pady=20)
 
-# Jalankan
 tampilkan_data()
 update_grafik()
 root.mainloop()
