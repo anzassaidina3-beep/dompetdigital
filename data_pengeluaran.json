@@ -8,5 +8,11 @@
         "tanggal": "2025-12-16 14:22:35",
         "deskripsi": "parkir",
         "nominal": 2000
+    },
+    {
+        "tanggal": "2025-12-16 14:37",
+        "kategori": "Makan",
+        "deskripsi": "padang",
+        "nominal": 15000
     }
 ]
