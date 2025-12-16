@@ -1,0 +1,11 @@
+# Folder hasil build aplikasi (sampah)
+dist/
+build/
+*.spec
+
+# Cache Python (sampah)
+__pycache__/
+*.pyc
+
+# Folder settingan VS Code (opsional, biar gak ikut keupload)
+.vscode/
